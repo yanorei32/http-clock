@@ -1,0 +1,97 @@
+on:
+  push:
+    branches:
+      - "master"
+    tags:
+      - "v*"
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: install clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+          targets: x86_64-pc-windows-gnu
+
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v2.7.3
+
+      - name: clippy check
+        uses: sksat/action-clippy@v0.7.0
+        with:
+          reporter: github-check
+
+      - name: install cargo-license
+        run: cargo install cargo-license
+
+      - name: unit test
+        run: cargo test
+
+      - name: build (linux)
+        run:
+          cargo build --release --target x86_64-unknown-linux-gnu
+
+      - name: build (windows)
+        run:
+          cargo build --release --target x86_64-pc-windows-gnu
+
+      - run: |
+          mkdir http-clock
+          cargo license \
+            --authors \
+            --do-not-bundle \
+            --avoid-dev-deps \
+            --avoid-build-deps \
+            --filter-platform x86_64-pc-windows-gnu \
+              > http-clock/CREDITS
+          VERSION_NAME=${GITHUB_REF##*/}
+          if [[ $VERSION_NAME == "master" ]]; then
+              VERSION_NAME=$(git rev-parse --short HEAD)
+          elif [[ ${VERSION_NAME:0:1} == "v" ]]; then
+              VERSION_NAME=${VERSION_NAME:1}
+          fi
+          echo "$VERSION_NAME" > http-clock/VERSION.txt
+          cp LICENSE README.md http-clock/
+          cp target/x86_64-pc-windows-gnu/release/http-clock.exe http-clock/
+          zip -r http-clock-windows.zip http-clock
+          rm http-clock/*.exe
+          cargo license \
+            --authors \
+            --do-not-bundle \
+            --avoid-dev-deps \
+            --avoid-build-deps \
+            --filter-platform x86_64-unknown-linux-gnu \
+              > http-clock/CREDITS
+          cp target/x86_64-unknown-linux-gnu/release/http-clock http-clock/
+          zip -r http-clock-linux.zip http-clock
+
+      - name: pre-release
+        uses: softprops/action-gh-release@v2.0.5
+        if: "! startsWith(github.ref, 'refs/tags/')"
+        with:
+          tag_name: "latest"
+          prerelease: true
+          name: "Development Build"
+          files: |
+            http-clock-windows.zip
+            http-clock-linux.zip
+
+      - name: tagged-release
+        uses: softprops/action-gh-release@v2.0.5
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            http-clock-windows.zip
+            http-clock-linux.zip

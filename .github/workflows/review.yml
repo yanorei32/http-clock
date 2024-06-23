@@ -1,0 +1,35 @@
+name: Review
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/review.yml'
+
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  rust:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - name: install clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v2.7.3
+
+      - name: clippy check
+        uses: sksat/action-clippy@v0.7.0
+        with:
+          reporter: github-pr-review
+
+      - name: unit test
+        run: cargo test

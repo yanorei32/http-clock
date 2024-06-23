@@ -1,7 +1,10 @@
+use std::net::SocketAddr;
+
 use axum::{routing::get, Router};
 use chrono::{DateTime, Utc};
 use chrono_tz::Japan;
 use tokio::{net::TcpListener, sync::watch};
+use clap::Parser;
 
 mod connection_counter;
 mod handler;
@@ -11,6 +14,13 @@ use handler::handler;
 
 type Time = (String, i64);
 type Clock = watch::Receiver<Time>;
+
+#[derive(Debug, Parser)]
+struct Cli {
+    #[clap(long, env)]
+    #[clap(default_value = "0.0.0.0:3000")]
+    listen: SocketAddr,
+}
 
 fn current_time() -> Time {
     let utc: DateTime<Utc> = Utc::now();
@@ -22,6 +32,8 @@ fn current_time() -> Time {
 
 #[tokio::main]
 async fn main() {
+    let c = Cli::parse();
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -42,7 +54,7 @@ async fn main() {
         }
     });
 
-    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = TcpListener::bind(c.listen).await.unwrap();
     tracing::info!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();

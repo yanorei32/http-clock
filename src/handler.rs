@@ -47,7 +47,7 @@ pub async fn handler(
     let stream = create_html_stream(clock, counter);
     let body = Body::from_stream(stream);
 
-    let is_cloudflare = headers.contains_key("cf-request-id");
+    let is_cloudflare = headers.contains_key("cf-ray");
 
     let headers = [
         (

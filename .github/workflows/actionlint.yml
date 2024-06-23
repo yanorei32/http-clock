@@ -9,7 +9,7 @@ jobs:
     name: runner / actionlint
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.6
+      - uses: actions/checkout@v4.1.7
 
       - name: actionlint
         uses: reviewdog/action-actionlint@v1.51.0

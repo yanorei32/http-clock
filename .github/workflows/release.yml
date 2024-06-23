@@ -29,7 +29,7 @@ jobs:
         uses: Swatinem/rust-cache@v2.7.3
 
       - name: clippy check
-        uses: sksat/action-clippy@v0.7.0
+        uses: sksat/action-clippy@v0.8.0
         with:
           reporter: github-check
 

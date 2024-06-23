@@ -36,7 +36,7 @@ jobs:
           prefix-key: ${{ env.RUST_CACHE_VERSION }}-rust
 
       - name: clippy check
-        uses: sksat/action-clippy@v0.7.0
+        uses: sksat/action-clippy@v0.8.0
         with:
           reporter: github-check
 

@@ -20,6 +20,12 @@ env:
 
 jobs:
   rust:
+    permissions:
+      packages: write
+      checks: write
+      contents: read
+      deployments: write
+
     runs-on: ubuntu-22.04
 
     steps:

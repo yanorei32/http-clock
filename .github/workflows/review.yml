@@ -18,9 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.7
 
+      - name: Get Rust toolchain
+        id: toolchain
+        run: |
+          awk -F'[ ="]+' '$1 == "channel" { print "toolchain=" $2 }' rust-toolchain >> "$GITHUB_OUTPUT"
+
       - name: install clippy
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ steps.toolchain.outputs.toolchain }}
           components: clippy
 
       - name: cache dependencies

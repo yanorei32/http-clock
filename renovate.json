@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "https://github.com/arkedge/renovate-config/raw/main/rust-toolchain.json5"
   ]
 }

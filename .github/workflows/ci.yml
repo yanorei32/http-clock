@@ -25,9 +25,15 @@ jobs:
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
+      - name: Get Rust toolchain
+        id: toolchain
+        run: |
+          awk -F'[ ="]+' '$1 == "channel" { print "toolchain=" $2 }' rust-toolchain >> "$GITHUB_OUTPUT"
+
       - name: install clippy
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ steps.toolchain.outputs.toolchain }}
           components: clippy
 
       - name: cache dependencies
@@ -36,7 +42,7 @@ jobs:
           prefix-key: ${{ env.RUST_CACHE_VERSION }}-rust
 
       - name: clippy check
-        uses: sksat/action-clippy@v0.7.0
+        uses: sksat/action-clippy@v0.8.0
         with:
           reporter: github-check
 

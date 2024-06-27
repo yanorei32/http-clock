@@ -20,7 +20,7 @@ fn create_html_stream(
         loop {
             let time = clock.borrow_and_update().clone();
             let connection_count = counter.current();
-            let user_emojis: String = std::iter::repeat("👤").take(connection_count).collect();
+            let user_emojis: String = "👤".repeat(connection_count);
             let jst_s = time.0;
             let timestamp = time.1;
 

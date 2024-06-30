@@ -25,7 +25,7 @@ fn create_html_stream(
             let timestamp = time.1;
 
             yield format!("\
-    <div class=t{timestamp}>\
+    <div class=e{event_count}>\
     <h2>{jst_s} <small>(JST)</small></h2>\
     <p>{event_count} event(s) sent.</p>\
     <p>{connection_count} active connection(s).</p>\
@@ -35,7 +35,7 @@ fn create_html_stream(
             let _ = clock.changed().await;
 
             event_count += 1;
-            yield format!("<style>.t{timestamp} {{ display: none; }}</style>\n");
+            yield format!("<style>.e{event_count} {{ display: none; }}</style>\n");
         }
     }
 }

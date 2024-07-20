@@ -34,8 +34,8 @@ fn create_html_stream(
 
             let _ = clock.changed().await;
 
-            event_count += 1;
             yield format!("<style>.e{event_count} {{ display: none; }}</style>\n");
+            event_count += 1;
         }
     }
 }

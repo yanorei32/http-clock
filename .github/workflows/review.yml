@@ -16,7 +16,7 @@ jobs:
   rust:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.0
 
       - name: Get Rust toolchain
         id: toolchain

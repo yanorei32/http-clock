@@ -43,7 +43,7 @@ jobs:
           components: clippy
 
       - name: cache dependencies
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
         with:
           prefix-key: ${{ env.RUST_CACHE_VERSION }}-rust
 

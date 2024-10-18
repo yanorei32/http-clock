@@ -1,4 +1,4 @@
-FROM rust:1.81.0-bookworm as build-env
+FROM rust:1.82.0-bookworm as build-env
 LABEL maintainer="yanorei32"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

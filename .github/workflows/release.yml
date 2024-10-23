@@ -13,7 +13,7 @@ jobs:
     name: release
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
 
       - run: |
           sudo apt-get update -y

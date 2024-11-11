@@ -86,7 +86,7 @@ jobs:
           zip -r http-clock-linux.zip http-clock
 
       - name: pre-release
-        uses: softprops/action-gh-release@v2.0.8
+        uses: softprops/action-gh-release@v2.1.0
         if: "! startsWith(github.ref, 'refs/tags/')"
         with:
           tag_name: "latest"
@@ -97,7 +97,7 @@ jobs:
             http-clock-linux.zip
 
       - name: tagged-release
-        uses: softprops/action-gh-release@v2.0.8
+        uses: softprops/action-gh-release@v2.1.0
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |

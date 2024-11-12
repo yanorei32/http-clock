@@ -21,7 +21,7 @@ COPY src/ /usr/src/http-clock/src/
 COPY assets/ /usr/src/http-clock/assets/
 RUN touch  assets/* src/* && cargo build --release
 
-FROM debian:bookworm-slim@sha256:7095ea629c4563714b9655137db2eacd456eb3eea0eb8a2b0a4a6b0b187220a9
+FROM debian:bookworm-slim@sha256:c00d13c9aa5d1acfa44e5ababbb8d1f5ac53fa94bc2f993070ccea2dcaf5aa64
 
 WORKDIR /
 

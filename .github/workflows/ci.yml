@@ -82,7 +82,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build and Push
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.10.0
         if: "! startsWith(github.ref, 'refs/pull/')"
         with:
           context: .
@@ -94,7 +94,7 @@ jobs:
             ghcr.io/yanorei32/http-clock:${{ steps.tagname.outputs.version }}
 
       - name: Build and Push
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.10.0
         if: "startsWith(github.ref, 'refs/pull/')"
         with:
           context: .

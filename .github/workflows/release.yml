@@ -10,12 +10,22 @@ env:
 
 jobs:
   release:
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            file: http-clock
+            output: http-clock-linux.zip
+          - target: x86_64-pc-windows-gnu
+            file: http-clock.exe
+            output: http-clock-windows.zip
     name: release
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
 
-      - run: |
+      - if: ${{ matrix.target == 'x86_64-pc-windows-gnu' }}
+        run: |
           sudo apt-get update -y
           sudo apt-get install -y gcc-mingw-w64-x86-64
 
@@ -47,22 +57,24 @@ jobs:
           cargo test --no-run --locked
           cargo test
 
-      - name: build (linux)
+      - name: build
+        env:
+          TARGET: ${{ matrix.target }}
         run:
-          cargo build --release --target x86_64-unknown-linux-gnu
+          cargo build --release --target $TARGET
 
-      - name: build (windows)
-        run:
-          cargo build --release --target x86_64-pc-windows-gnu
-
-      - run: |
+      - env:
+          TARGET: ${{ matrix.target }}
+          FILE: ${{ matrix.file }}
+          OUTPUT: ${{ matrix.output }}
+        run: |
           mkdir http-clock
           cargo license \
             --authors \
             --do-not-bundle \
             --avoid-dev-deps \
             --avoid-build-deps \
-            --filter-platform x86_64-pc-windows-gnu \
+            --filter-platform $TARGET \
               > http-clock/CREDITS
           VERSION_NAME=${GITHUB_REF##*/}
           if [[ $VERSION_NAME == "master" ]]; then
@@ -72,18 +84,8 @@ jobs:
           fi
           echo "$VERSION_NAME" > http-clock/VERSION.txt
           cp LICENSE README.md http-clock/
-          cp target/x86_64-pc-windows-gnu/release/http-clock.exe http-clock/
-          zip -r http-clock-windows.zip http-clock
-          rm http-clock/*.exe
-          cargo license \
-            --authors \
-            --do-not-bundle \
-            --avoid-dev-deps \
-            --avoid-build-deps \
-            --filter-platform x86_64-unknown-linux-gnu \
-              > http-clock/CREDITS
-          cp target/x86_64-unknown-linux-gnu/release/http-clock http-clock/
-          zip -r http-clock-linux.zip http-clock
+          cp target/$TARGET/release/$FILE http-clock/
+          zip -r $OUTPUT http-clock
 
       - name: pre-release
         uses: softprops/action-gh-release@v2.1.0
@@ -93,13 +95,11 @@ jobs:
           prerelease: true
           name: "Development Build"
           files: |
-            http-clock-windows.zip
-            http-clock-linux.zip
+            ${{ matrix.output }}
 
       - name: tagged-release
         uses: softprops/action-gh-release@v2.1.0
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            http-clock-windows.zip
-            http-clock-linux.zip
+            ${{ matrix.output }}

@@ -21,7 +21,12 @@ fn create_svg_stream(
             let time = clock.borrow_and_update().clone();
             let jst_s = time.0;
             let connection_count = counter.current();
-            let user_emojis: String = "👤".repeat(connection_count);
+
+            let user_emojis: String = if connection_count <= 20 {
+                "👤".repeat(connection_count)
+            } else {
+                "👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤...".to_string()
+            };
 
             yield format!("
                 <rect x=\"0\" y=\"0\" width=\"320\" height=\"120\" fill=\"black\" />

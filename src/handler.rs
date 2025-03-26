@@ -20,7 +20,13 @@ fn create_html_stream(
         loop {
             let time = clock.borrow_and_update().clone();
             let connection_count = counter.current();
-            let user_emojis: String = "👤".repeat(connection_count);
+
+            let user_emojis: String = if connection_count <= 100 {
+                "👤".repeat(connection_count)
+            } else {
+                "👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤...".to_string()
+            };
+
             let jst_s = time.0;
 
             yield format!("\

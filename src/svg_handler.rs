@@ -8,42 +8,44 @@ use axum::{
 };
 use futures::Stream;
 
-fn create_html_stream(
+fn create_svg_stream(
     mut clock: Clock,
     counter: ConnectionCounter,
 ) -> impl Stream<Item = Result<String, Box<dyn std::error::Error + 'static + Send + Sync>>> {
     try_stream! {
         let _session = counter.acquire();
-        yield include_str!("../assets/head.html").to_string();
+        yield include_str!("../assets/svg_head.html").to_string();
 
         let mut event_count = 1;
         loop {
             let time = clock.borrow_and_update().clone();
+            let jst_s = time.0;
             let connection_count = counter.current();
             let user_emojis: String = "👤".repeat(connection_count);
-            let jst_s = time.0;
 
-            yield format!("\
-    <div class=e{event_count}>\
-    <h2>{jst_s} <small>(JST)</small></h2>\
-    <p>{event_count} event(s) sent.</p>\
-    <p>{connection_count} active connection(s).</p>\
-    <p>{user_emojis}</p>\
-    </div>");
+            yield format!("
+                <rect x=\"0\" y=\"0\" width=\"320\" height=\"120\" fill=\"black\" />
+                <text font-size=\"2em\" x=\"160\" y=\"40\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"white\">{jst_s}</text>
+                <defs>
+                    <clipPath id=\"clip{event_count}\">
+                        <text font-size=\"0.5em\" x=\"160\" y=\"80\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"white\">Conns: {user_emojis}</text>
+                    </clipPath>
+                </defs>
+                <rect x=\"0\" y=\"0\" width=\"320\" height=\"120\" fill=\"white\" clip-path=\"url(#clip{event_count})\"/>
+            ");
 
             let _ = clock.changed().await;
-
-            yield format!("<style>.e{event_count} {{ display: none; }}</style>\n");
             event_count += 1;
         }
     }
 }
 
-pub async fn handler(
+
+pub async fn svg_handler(
     headers: HeaderMap,
     State((clock, counter)): State<(Clock, ConnectionCounter)>,
 ) -> impl IntoResponse {
-    let stream = create_html_stream(clock, counter);
+    let stream = create_svg_stream(clock, counter);
     let body = Body::from_stream(stream);
 
     let is_cloudflare = headers.contains_key("cf-ray");

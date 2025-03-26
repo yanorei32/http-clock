@@ -8,9 +8,11 @@ use clap::Parser;
 
 mod connection_counter;
 mod handler;
+mod svg_handler;
 
 use connection_counter::ConnectionCounter;
 use handler::handler;
+use svg_handler::svg_handler;
 
 type Time = (String, i64);
 type Clock = watch::Receiver<Time>;
@@ -42,6 +44,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(handler))
+        .route("/svg", get(svg_handler))
         .with_state((clock, ConnectionCounter::new()));
 
     tokio::spawn(async move {

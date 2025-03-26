@@ -1,4 +1,5 @@
 use crate::{Clock, ConnectionCounter};
+
 use async_stream::try_stream;
 use axum::{
     body::Body,
@@ -6,41 +7,22 @@ use axum::{
     http::{header, HeaderMap, HeaderName},
     response::IntoResponse,
 };
+use bytes::Bytes;
 use futures::Stream;
 
 fn create_html_stream(
     mut clock: Clock,
     counter: ConnectionCounter,
-) -> impl Stream<Item = Result<String, Box<dyn std::error::Error + 'static + Send + Sync>>> {
+) -> impl Stream<Item = Result<Bytes, Box<dyn std::error::Error + 'static + Send + Sync>>> {
     try_stream! {
         let _session = counter.acquire();
-        yield include_str!("../assets/head.html").to_string();
+        yield Bytes::from_static(include_bytes!("../assets/head.html"));
+        clock.mark_unchanged();
 
-        let mut event_count = 1;
         loop {
-            let time = clock.borrow_and_update().clone();
-            let connection_count = counter.current();
-
-            let user_emojis: String = if connection_count <= 100 {
-                "👤".repeat(connection_count)
-            } else {
-                "👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤...".to_string()
-            };
-
-            let jst_s = time.0;
-
-            yield format!("\
-    <div class=e{event_count}>\
-    <h2>{jst_s} <small>(JST)</small></h2>\
-    <p>{event_count} event(s) sent.</p>\
-    <p>{connection_count} active connection(s).</p>\
-    <p>{user_emojis}</p>\
-    </div>");
-
             let _ = clock.changed().await;
-
-            yield format!("<style>.e{event_count} {{ display: none; }}</style>\n");
-            event_count += 1;
+            let partial_html = clock.borrow_and_update().partial_html.clone();
+            yield partial_html;
         }
     }
 }

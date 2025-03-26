@@ -1,4 +1,5 @@
 use crate::{Clock, ConnectionCounter};
+
 use async_stream::try_stream;
 use axum::{
     body::Body,
@@ -6,45 +7,25 @@ use axum::{
     http::{header, HeaderMap, HeaderName},
     response::IntoResponse,
 };
+use bytes::Bytes;
 use futures::Stream;
 
 fn create_svg_stream(
     mut clock: Clock,
     counter: ConnectionCounter,
-) -> impl Stream<Item = Result<String, Box<dyn std::error::Error + 'static + Send + Sync>>> {
+) -> impl Stream<Item = Result<Bytes, Box<dyn std::error::Error + 'static + Send + Sync>>> {
     try_stream! {
         let _session = counter.acquire();
-        yield include_str!("../assets/svg_head.html").to_string();
+        yield Bytes::from_static(include_bytes!("../assets/svg_head.html"));
+        clock.mark_unchanged();
 
-        let mut event_count = 1;
         loop {
-            let time = clock.borrow_and_update().clone();
-            let jst_s = time.0;
-            let connection_count = counter.current();
-
-            let user_emojis: String = if connection_count <= 20 {
-                "👤".repeat(connection_count)
-            } else {
-                "👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤...".to_string()
-            };
-
-            yield format!("
-                <rect x=\"0\" y=\"0\" width=\"320\" height=\"120\" fill=\"black\" />
-                <text font-size=\"2em\" x=\"160\" y=\"40\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"white\">{jst_s}</text>
-                <defs>
-                    <clipPath id=\"clip{event_count}\">
-                        <text font-size=\"0.5em\" x=\"160\" y=\"80\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"white\">Conns: {user_emojis}</text>
-                    </clipPath>
-                </defs>
-                <rect x=\"0\" y=\"0\" width=\"320\" height=\"120\" fill=\"white\" clip-path=\"url(#clip{event_count})\"/>
-            ");
-
             let _ = clock.changed().await;
-            event_count += 1;
+            let partial_svg = clock.borrow_and_update().partial_svg.clone();
+            yield partial_svg;
         }
     }
 }
-
 
 pub async fn svg_handler(
     headers: HeaderMap,

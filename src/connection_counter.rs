@@ -33,7 +33,7 @@ impl ConnectionCounter {
     }
 }
 
-impl<'a> Drop for Session<'a> {
+impl Drop for Session<'_> {
     fn drop(&mut self) {
         self.counter.release();
         tracing::info!("Connection has been closed. conns: {}", self.counter.current());

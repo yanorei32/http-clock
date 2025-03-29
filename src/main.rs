@@ -80,8 +80,8 @@ impl Context {
 
         bytes::Bytes::from(format!(
             "
-            <style>.e{previous_timestamp} {{ display: none; }}</style>\
-            <div class=e{timestamp}>\
+            <style>#e{previous_timestamp} {{ display: none; }}</style>\
+            <div id=e{timestamp}>\
                 <h2>{jst} <small>(JST)</small></h2>\
                 <p>{connection_count} active connection(s).</p>\
                 <p>{user_emojis}</p>\

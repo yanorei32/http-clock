@@ -8,10 +8,12 @@ use tokio::{net::TcpListener, sync::watch};
 
 mod connection_counter;
 mod handler;
+mod select_handler;
 mod svg_handler;
 
 use connection_counter::ConnectionCounter;
 use handler::handler;
+use select_handler::select_handler;
 use svg_handler::svg_handler;
 
 type Clock = watch::Receiver<ClockData>;
@@ -27,6 +29,7 @@ struct Cli {
 struct ClockData {
     pub partial_html: bytes::Bytes,
     pub partial_svg: bytes::Bytes,
+    pub partial_select: bytes::Bytes,
     pub timestamp: i64,
 }
 
@@ -86,14 +89,24 @@ impl Context {
         "
         ))
     }
+
+    fn encode_select(&self) -> bytes::Bytes {
+        let jst = self.jst.as_str();
+        let connection_count = self.connection_count;
+
+        bytes::Bytes::from(format!(
+            "<option selected>{jst} (JST) / {connection_count} active connection(s).</option>\n"
+        ))
+    }
 }
 
 fn encode(previous_timestamp: i64, connection_count: usize) -> ClockData {
     let utc: DateTime<Utc> = Utc::now();
-    let utc = utc.checked_add_signed(chrono::TimeDelta::new(1, 0).unwrap()).unwrap();
+    let utc = utc
+        .checked_add_signed(chrono::TimeDelta::new(1, 0).unwrap())
+        .unwrap();
 
     let timestamp = utc.timestamp_millis();
-
 
     let jst = utc
         .with_timezone(&Japan)
@@ -109,10 +122,12 @@ fn encode(previous_timestamp: i64, connection_count: usize) -> ClockData {
 
     let partial_svg = ctx.encode_svg();
     let partial_html = ctx.encode_html();
+    let partial_select = ctx.encode_select();
 
     ClockData {
         partial_svg,
         partial_html,
+        partial_select,
         timestamp,
     }
 }
@@ -132,6 +147,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(handler))
         .route("/svg", get(svg_handler))
+        .route("/select", get(select_handler))
         .with_state((clock, connection_counter.clone()));
 
     tokio::spawn(async move {

@@ -15,7 +15,7 @@ docker run --rm -it -p 3000:3000 ghcr.io/yanorei32/http-clock
 ```bash
 git clone https://github.com/yanorei32/http-clock
 cd http-clock
-cargo run # by default, that listen in 0.0.0.0:3000
+cargo run # by default, listens in 0.0.0.0:3000
 ```
 
 If you don't have cargo, you can get it with [rustup](https://www.rust-lang.org/tools/install).

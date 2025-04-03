@@ -1,4 +1,4 @@
-use crate::{Clock, ConnectionCounter};
+use crate::{model::Context, Clock, ConnectionCounter};
 
 use async_stream::try_stream;
 use axum::{
@@ -10,7 +10,31 @@ use axum::{
 use bytes::Bytes;
 use futures::Stream;
 
-fn create_html_stream(
+pub fn encode(ctx: &Context) -> Bytes {
+    let jst = ctx.jst.as_str();
+    let timestamp = ctx.timestamp;
+    let connection_count = ctx.connection_count;
+    let previous_timestamp = ctx.previous_timestamp;
+
+    let user_emojis: String = if connection_count <= 50 {
+        "👤".repeat(connection_count)
+    } else {
+        "👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤👤..".to_string()
+    };
+
+    bytes::Bytes::from(format!(
+        "
+            <style>#e{previous_timestamp} {{ display: none; }}</style>\
+            <div id=e{timestamp}>\
+                <h2>{jst} <small>(JST)</small></h2>\
+                <p>{connection_count} active connection(s).</p>\
+                <p>{user_emojis}</p>\
+            </div>\
+        "
+    ))
+}
+
+fn stream(
     mut clock: Clock,
     counter: ConnectionCounter,
 ) -> impl Stream<Item = Result<Bytes, Box<dyn std::error::Error + 'static + Send + Sync>>> {
@@ -21,8 +45,8 @@ fn create_html_stream(
 
         loop {
             let _ = clock.changed().await;
-            let partial_html = clock.borrow_and_update().partial_html.clone();
-            yield partial_html;
+            let partial = clock.borrow_and_update().html.clone();
+            yield partial;
         }
     }
 }
@@ -31,7 +55,7 @@ pub async fn handler(
     headers: HeaderMap,
     State((clock, counter)): State<(Clock, ConnectionCounter)>,
 ) -> impl IntoResponse {
-    let stream = create_html_stream(clock, counter);
+    let stream = stream(clock, counter);
     let body = Body::from_stream(stream);
 
     let is_cloudflare = headers.contains_key("cf-ray");

@@ -28,7 +28,7 @@ impl ConnectionCounter {
         self.count.fetch_sub(1, Ordering::Relaxed);
     }
 
-    pub fn current(&self) -> usize{
+    pub fn current(&self) -> usize {
         self.count.load(Ordering::Relaxed)
     }
 }
@@ -36,6 +36,9 @@ impl ConnectionCounter {
 impl Drop for Session<'_> {
     fn drop(&mut self) {
         self.counter.release();
-        tracing::info!("Connection has been closed. conns: {}", self.counter.current());
+        tracing::info!(
+            "Connection has been closed. conns: {}",
+            self.counter.current()
+        );
     }
 }

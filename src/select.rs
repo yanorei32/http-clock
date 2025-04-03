@@ -1,4 +1,4 @@
-use crate::{Clock, ConnectionCounter};
+use crate::{model::Context, Clock, ConnectionCounter};
 
 use async_stream::try_stream;
 use axum::{
@@ -10,7 +10,16 @@ use axum::{
 use bytes::Bytes;
 use futures::Stream;
 
-fn create_select_stream(
+pub fn encode(ctx: &Context) -> Bytes {
+    let jst = ctx.jst.as_str();
+    let connection_count = ctx.connection_count;
+
+    bytes::Bytes::from(format!(
+        "<option selected>{jst} (JST) / {connection_count} active connection(s).</option>\n"
+    ))
+}
+
+fn stream(
     mut clock: Clock,
     counter: ConnectionCounter,
 ) -> impl Stream<Item = Result<Bytes, Box<dyn std::error::Error + 'static + Send + Sync>>> {
@@ -21,17 +30,17 @@ fn create_select_stream(
 
         loop {
             let _ = clock.changed().await;
-            let partial_select = clock.borrow_and_update().partial_select.clone();
-            yield partial_select;
+            let partial = clock.borrow_and_update().select.clone();
+            yield partial;
         }
     }
 }
 
-pub async fn select_handler(
+pub async fn handler(
     headers: HeaderMap,
     State((clock, counter)): State<(Clock, ConnectionCounter)>,
 ) -> impl IntoResponse {
-    let stream = create_select_stream(clock, counter);
+    let stream = stream(clock, counter);
     let body = Body::from_stream(stream);
 
     let is_cloudflare = headers.contains_key("cf-ray");

@@ -21,13 +21,13 @@ use bytes::Bytes;
 use futures::Stream;
 use once_cell::sync::OnceCell;
 
-const FONT_COUNT: usize = 13;
+const GLYPH_COUNT: usize = 13;
 const FONT_SIZE: Size = Size::new(6, 10);
 
-static LZW_ENCODED_FONTS: OnceCell<[bytes::Bytes; FONT_COUNT]> = OnceCell::new();
+static LZW_ENCODED_FONTS: OnceCell<[bytes::Bytes; GLYPH_COUNT]> = OnceCell::new();
 static LZW_ENCODED_BG: OnceCell<bytes::Bytes> = OnceCell::new();
 static GIF_HEADER: OnceCell<bytes::Bytes> = OnceCell::new();
-static FONTS: [&[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = [
+static GLYPHS: [&[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; GLYPH_COUNT] = [
     b"\
 _####_\
 ######\
@@ -174,14 +174,14 @@ ______\
 ",
     b"\
 ######\
+##__##\
+#____#\
+###__#\
+###__#\
+##___#\
+##__##\
 ######\
-######\
-######\
-######\
-######\
-######\
-######\
-######\
+##__##\
 ######\
 ",
 ];
@@ -229,7 +229,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
     let sec_h = ctx.jst.as_bytes()[17];
     let sec_l = ctx.jst.as_bytes()[18];
 
-    let fonts = &LZW_ENCODED_FONTS.get().unwrap();
+    let glyphs = &LZW_ENCODED_FONTS.get().unwrap();
 
     let blocks = [
         Block::Extension(Extension::GraphicsControlExtension(
@@ -261,7 +261,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sec_l)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sec_l)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -277,7 +277,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sec_h)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sec_h)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -293,7 +293,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sep_ms)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sep_ms)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -309,7 +309,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(min_l)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(min_l)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -325,7 +325,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(min_h)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(min_h)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -341,7 +341,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sep_hm)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sep_hm)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -357,7 +357,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(hou_l)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(hou_l)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -373,7 +373,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(hou_h)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(hou_h)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -389,7 +389,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(yea_a)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(yea_a)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -405,7 +405,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(yea_b)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(yea_b)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -421,7 +421,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(yea_c)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(yea_c)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -437,7 +437,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(yea_d)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(yea_d)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -453,7 +453,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sep_ym)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sep_ym)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -469,7 +469,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(mon_h)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(mon_h)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -485,7 +485,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(mon_l)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(mon_l)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -501,7 +501,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(sep_md)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(sep_md)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -517,7 +517,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(day_h)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(day_h)].to_vec(),
             },
         }),
         Block::Extension(Extension::GraphicsControlExtension(
@@ -533,7 +533,7 @@ pub fn encode(ctx: &Context) -> bytes::Bytes {
                 size: Size::new(6, 10),
                 packed: ImagePacked::new(),
                 local_color_table: vec![],
-                lzw_binary: fonts[to_codepoint(day_l)].to_vec(),
+                lzw_binary: glyphs[to_codepoint(day_l)].to_vec(),
             },
         }),
     ];
@@ -560,7 +560,14 @@ fn stream(
     }
 }
 
-pub async fn handler(
+pub async fn banner_page_handler() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/html")],
+        include_str!("../assets/banner.html"),
+    )
+}
+
+pub async fn gif_handler(
     headers: HeaderMap,
     State((clock, counter)): State<(Clock, ConnectionCounter)>,
 ) -> impl IntoResponse {
@@ -588,7 +595,7 @@ pub async fn handler(
 }
 
 fn init_image() {
-    let data: [[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = FONTS.map(|v| {
+    let data: [[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; GLYPH_COUNT] = GLYPHS.map(|v| {
         v.map(|c| match c {
             b'_' => 0u8,
             b'#' => 1u8,
@@ -596,7 +603,7 @@ fn init_image() {
         })
     });
 
-    let data: [bytes::Bytes; FONT_COUNT] =
+    let data: [bytes::Bytes; GLYPH_COUNT] =
         data.map(|raw| bytes::Bytes::from(crate::mygif::do_lzw(&raw)));
 
     LZW_ENCODED_FONTS.set(data).unwrap();

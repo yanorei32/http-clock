@@ -72,7 +72,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(html::handler))
-        .route("/banner.gif", get(gif_banner::handler))
+        .route("/banner", get(gif_banner::banner_page_handler))
+        .route("/banner.gif", get(gif_banner::gif_handler))
         .route("/svg", get(svg::handler))
         .route("/select", get(select::handler))
         .with_state((clock, connection_counter.clone()));

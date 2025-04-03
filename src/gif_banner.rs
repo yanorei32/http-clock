@@ -24,10 +24,10 @@ use once_cell::sync::OnceCell;
 const FONT_COUNT: usize = 13;
 const FONT_SIZE: Size = Size::new(6, 10);
 
-pub static LZW_ENCODED_FONTS: OnceCell<[bytes::Bytes; FONT_COUNT]> = OnceCell::new();
-pub static LZW_ENCODED_BG: OnceCell<bytes::Bytes> = OnceCell::new();
-pub static GIF_HEADER: OnceCell<bytes::Bytes> = OnceCell::new();
-pub static FONTS: [&[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = [
+static LZW_ENCODED_FONTS: OnceCell<[bytes::Bytes; FONT_COUNT]> = OnceCell::new();
+static LZW_ENCODED_BG: OnceCell<bytes::Bytes> = OnceCell::new();
+static GIF_HEADER: OnceCell<bytes::Bytes> = OnceCell::new();
+static FONTS: [&[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = [
     b"\
 _####_\
 ######\
@@ -186,7 +186,7 @@ ______\
 ",
 ];
 
-pub fn to_codepoint(c: u8) -> usize {
+fn to_codepoint(c: u8) -> usize {
     match c {
         b'0' => 0,
         b'1' => 1,
@@ -202,71 +202,6 @@ pub fn to_codepoint(c: u8) -> usize {
         b':' => 11,
         _ => 12,
     }
-}
-
-fn init_font() {
-    let data: [[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = FONTS.map(|v| {
-        v.map(|c| match c {
-            b'_' => 0u8,
-            b'#' => 1u8,
-            _ => 0u8,
-        })
-    });
-
-    let data: [bytes::Bytes; FONT_COUNT] =
-        data.map(|raw| bytes::Bytes::from(crate::mygif::do_lzw(&raw)));
-
-    LZW_ENCODED_FONTS.set(data).unwrap();
-}
-
-fn init_bg() {
-    let bg = bytes::Bytes::from(crate::mygif::do_lzw(&[0x00; 88 * 31]));
-    LZW_ENCODED_BG.set(bg).unwrap();
-}
-
-fn init_header() {
-    let mut buffer = Cursor::new(vec![]);
-
-    let mygif = Gif {
-        version: Version::GIF89a,
-        screen_width: 88,
-        screen_height: 31,
-        packed: HeaderPacked::new()
-            .with_global_color_table_flag(true)
-            .with_color_resolution(7),
-        background_color_index: 0x00,
-        pixel_aspect_ratio: 0,
-        global_color_table: [
-            Color::from_rgb(0x00, 0x00, 0x00),
-            Color::from_rgb(0xFF, 0xFF, 0xFF),
-        ]
-        .into(),
-        blocks: [
-            Block::Extension(Extension::GraphicsControlExtension(
-                GraphicsControlExtension {
-                    delay_time: 2,
-                    transpalent_color_index: 0,
-                    packed: GraphicControlExtensionPacked::new(),
-                },
-            )),
-            Block::Image(ImagePositioned {
-                position: Position::new(0, 0),
-                image: Image {
-                    size: Size::new(88, 31),
-                    packed: ImagePacked::new(),
-                    local_color_table: vec![],
-                    lzw_binary: LZW_ENCODED_BG.get().unwrap().to_vec(),
-                },
-            }),
-        ]
-        .into(),
-    };
-
-    mygif.write(&mut buffer).unwrap();
-
-    GIF_HEADER
-        .set(bytes::Bytes::from(buffer.into_inner()))
-        .unwrap();
 }
 
 #[allow(clippy::identity_op)]
@@ -652,8 +587,70 @@ pub async fn handler(
     (headers, body)
 }
 
+fn init_image() {
+    let data: [[u8; (FONT_SIZE.width * FONT_SIZE.height) as usize]; FONT_COUNT] = FONTS.map(|v| {
+        v.map(|c| match c {
+            b'_' => 0u8,
+            b'#' => 1u8,
+            _ => 0u8,
+        })
+    });
+
+    let data: [bytes::Bytes; FONT_COUNT] =
+        data.map(|raw| bytes::Bytes::from(crate::mygif::do_lzw(&raw)));
+
+    LZW_ENCODED_FONTS.set(data).unwrap();
+
+    let bg = bytes::Bytes::from(crate::mygif::do_lzw(&[0x00; 88 * 31]));
+    LZW_ENCODED_BG.set(bg).unwrap();
+}
+
+fn init_header() {
+    let mut buffer = Cursor::new(vec![]);
+
+    let mygif = Gif {
+        version: Version::GIF89a,
+        screen_width: 88,
+        screen_height: 31,
+        packed: HeaderPacked::new()
+            .with_global_color_table_flag(true)
+            .with_color_resolution(7),
+        background_color_index: 0x00,
+        pixel_aspect_ratio: 0,
+        global_color_table: [
+            Color::from_rgb(0x00, 0x00, 0x00),
+            Color::from_rgb(0xFF, 0xFF, 0xFF),
+        ]
+        .into(),
+        blocks: [
+            Block::Extension(Extension::GraphicsControlExtension(
+                GraphicsControlExtension {
+                    delay_time: 2,
+                    transpalent_color_index: 0,
+                    packed: GraphicControlExtensionPacked::new(),
+                },
+            )),
+            Block::Image(ImagePositioned {
+                position: Position::new(0, 0),
+                image: Image {
+                    size: Size::new(88, 31),
+                    packed: ImagePacked::new(),
+                    local_color_table: vec![],
+                    lzw_binary: LZW_ENCODED_BG.get().unwrap().to_vec(),
+                },
+            }),
+        ]
+        .into(),
+    };
+
+    mygif.write(&mut buffer).unwrap();
+
+    GIF_HEADER
+        .set(bytes::Bytes::from(buffer.into_inner()))
+        .unwrap();
+}
+
 pub fn initialization() {
-    init_font();
-    init_bg();
+    init_image();
     init_header();
 }

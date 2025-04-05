@@ -1,12 +1,12 @@
 # HTTP Clock
 
-## But, Why?
-
-[HTTP Clockを支える技術 ACT.1](https://blog.yr32.net/post/http-clock-act1/)
-
 ## Hosted Version
 
 https://httpclock.yr32.net/
+
+## But, Why?
+
+[HTTP Clockを支える技術 ACT.1](https://blog.yr32.net/post/http-clock-act1/)
 
 ## Self-host Quick Start
 

@@ -4,6 +4,7 @@ pub struct ClockData {
     pub svg: bytes::Bytes,
     pub select: bytes::Bytes,
     pub gif: bytes::Bytes,
+    pub rtl: bytes::Bytes,
 }
 
 #[derive(Debug, Clone)]

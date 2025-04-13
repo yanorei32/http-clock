@@ -13,6 +13,7 @@ mod model;
 mod mygif;
 mod select;
 mod svg;
+mod rtl;
 
 use connection_counter::ConnectionCounter;
 
@@ -52,6 +53,7 @@ fn encode(previous_timestamp: i64, connection_count: usize) -> (i64, model::Cloc
             html: html::encode(&ctx),
             select: select::encode(&ctx),
             gif: gif_banner::encode(&ctx),
+            rtl: rtl::encode(&ctx),
         },
     )
 }
@@ -75,6 +77,7 @@ async fn main() {
         .route("/banner", get(gif_banner::banner_page_handler))
         .route("/banner.gif", get(gif_banner::gif_handler))
         .route("/svg", get(svg::handler))
+        .route("/rtl", get(rtl::handler))
         .route("/select", get(select::handler))
         .with_state((clock, connection_counter.clone()));
 

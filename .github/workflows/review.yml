@@ -30,7 +30,7 @@ jobs:
           components: clippy
 
       - name: cache dependencies
-        uses: Swatinem/rust-cache@v2.8.1
+        uses: Swatinem/rust-cache@v2.8.2
 
       - name: clippy check
         uses: sksat/action-clippy@v1.1.1

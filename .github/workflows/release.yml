@@ -22,7 +22,7 @@ jobs:
     name: release
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
 
       - if: ${{ matrix.target == 'x86_64-pc-windows-gnu' }}
         run: |

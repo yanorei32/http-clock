@@ -1,5 +1,8 @@
 # HTTP Clock
 
+> [!WARNING]
+> This project is 100% Human Generated. Use at your own risk.
+
 ## Hosted Version
 
 https://httpclock.yr32.net/

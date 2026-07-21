@@ -17,7 +17,7 @@ impl ConnectionCounter {
         }
     }
 
-    pub fn acquire(&self) -> Session {
+    pub fn acquire(&self) -> Session<'_> {
         self.count.fetch_add(1, Ordering::Relaxed);
         tracing::info!("Connection is established. conns: {}", self.current());
 

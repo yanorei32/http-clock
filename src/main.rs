@@ -14,6 +14,7 @@ mod mygif;
 mod select;
 mod svg;
 mod rtl;
+mod dpu;
 
 use connection_counter::ConnectionCounter;
 
@@ -54,6 +55,7 @@ fn encode(previous_timestamp: i64, connection_count: usize) -> (i64, model::Cloc
             select: select::encode(&ctx),
             gif: gif_banner::encode(&ctx),
             rtl: rtl::encode(&ctx),
+            dpu: dpu::encode(&ctx),
         },
     )
 }
@@ -79,6 +81,7 @@ async fn main() {
         .route("/svg", get(svg::handler))
         .route("/rtl", get(rtl::handler))
         .route("/select", get(select::handler))
+        .route("/dpu", get(dpu::handler))
         .with_state((clock, connection_counter.clone()));
 
     tokio::spawn(async move {
